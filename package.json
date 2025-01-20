@@ -1,0 +1,24 @@
+{
+  "name": "sys-log",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": "app.js",
+  "scripts": {
+    "pkg": "pkg . --targets node16-linux-x64,node16-win-x64 --output dist/sys-log"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "express": "^4.21.2",
+    "express-basic-auth": "^1.2.1",
+    "os-utils": "^0.0.14",
+    "systeminformation": "^5.25.11"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.0"
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/axios/dist/node/axios.cjs"
+    ]
+  }
+}
