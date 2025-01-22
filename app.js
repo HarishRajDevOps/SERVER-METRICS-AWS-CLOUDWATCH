@@ -441,17 +441,40 @@ const si = require('systeminformation');
 const basicAuth = require('express-basic-auth'); // Add basic auth
 
 const app = express();
-const PORT = 3000;
+const PORT = 7002;
 
-// Get dynamic password from environment variables
-const password = process.env.METRICS_API_PASSWORD || 'defaultPassword';
+// Dynamically update password during runtime
+let password = process.env.METRICS_API_PASSWORD || 'defaultPassword';
 
-// Use basic authentication middleware for /metrics endpoint
+// Function to update password dynamically if needed
+const updatePassword = (newPassword) => {
+    password = newPassword;
+    users['admin'] = password;  // Update the users object dynamically
+};
+
+// Allow updating password via an API endpoint
+app.post('/update-password', express.json(), (req, res) => {
+    const newPassword = req.body.password;
+    if (newPassword) {
+        updatePassword(newPassword);
+        return res.status(200).send('Password updated successfully.');
+    } else {
+        return res.status(400).send('New password not provided.');
+    }
+});
+
+// Ensure the password is always a string and assign it to the users object
+const users = {};
+users['admin'] = password;
+
+
+// Basic authentication middleware for /metrics endpoint
 app.use('/metrics', basicAuth({
-    users: { 'admin': password },
+    users: users,
     challenge: true,
     unauthorizedResponse: 'Unauthorized'
 }));
+
 
 // Function to get disk usage
 async function getDiskUsage() {
