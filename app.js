@@ -488,16 +488,29 @@ async function getDiskUsage() {
     })) : [];
 }
 
-// Function to get network speed (Upload/Download)
+// Function to get network speed (Upload/Download) and convert to Mbit/s
 async function getNetworkSpeed() {
     const networkStats = await si.networkStats();
-    return networkStats && Array.isArray(networkStats) ? networkStats.map(network => ({
-        iface: network.iface,
-        speed: network.speed,
-        receivedBytes: network.rx_bytes,
-        transmittedBytes: network.tx_bytes
-    })) : [];
+    return networkStats && Array.isArray(networkStats) ? networkStats.map(network => {
+        const downloadSpeed = network.rx_bytes; // Bytes received
+        const uploadSpeed = network.tx_bytes; // Bytes transmitted
+
+        // Convert bytes to bits (1 byte = 8 bits)
+        const downloadSpeedInBits = downloadSpeed * 8;
+        const uploadSpeedInBits = uploadSpeed * 8;
+
+        // Convert to Mbit/s (1 Mbit = 1,000,000 bits)
+        const downloadSpeedInMbit = downloadSpeedInBits / 1_000_000;
+        const uploadSpeedInMbit = uploadSpeedInBits / 1_000_000;
+
+        return {
+            iface: network.iface,
+            downloadSpeedInMbit: downloadSpeedInMbit.toFixed(2), // Rounded to 2 decimal places
+            uploadSpeedInMbit: uploadSpeedInMbit.toFixed(2) // Rounded to 2 decimal places
+        };
+    }) : [];
 }
+
 
 // Function to get BIOS information
 async function getBiosInfo() {
@@ -539,7 +552,11 @@ async function getLastRestartTime() {
 // Function to get used RAM in GB
 async function getUsedRAMInGB() {
     const memory = await si.mem();
-    return memory ? memory.used / (1024 * 1024 * 1024) : 0; // Convert to GB
+    return memory ? {
+        total: (memory.total / 1024 / 1024).toFixed(2), // Convert to MB
+        used: (memory.used / 1024 / 1024).toFixed(2), // Convert to MB
+        available: (memory.available / 1024 / 1024).toFixed(2) // Convert to MB
+    } : {};
 }
 
 // Function to get the CPU core count
